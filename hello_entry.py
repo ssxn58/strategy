@@ -5,19 +5,24 @@ import sys
 import json
 import importlib
 import os
+import time
 
-from flask import Flask
-app = Flask(__name__)
-host = "127.0.0.1"
-port = 5001
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(f'{__file__}.log', encoding='utf-8'),
+    ]
+)
+logger = logging.getLogger(__name__)
 
-@app.route('/hello', methods=['GET'])
-def hello():
-    return 'hello'
 
 def start():
     args = sys.argv
-    dic = json.loads(args[1])
+    json_str = args[1]
+    logger.info(f"接收到的原始 JSON 字符串: {json_str}")
+    dic = json.loads(json_str)
     ping_msg = dic.get('ping_msg', "123")
     sock_port = dic.get('sock_port', 53500)
     thread1 = threading.Thread(target=ping, args=(ping_msg,sock_port))
@@ -28,8 +33,9 @@ def start():
     start_main()
 
 def start_main():
-    app.run(host, port, debug=True)
-
+    # app.run(host, port, debug=True)
+    while(True):
+        time.sleep(1)
 
 def ping(ping_msg : str, sock_port):
     sender = UdpSender(sock_port)
@@ -49,5 +55,6 @@ class UdpSender:
         # self.__udpSender.close()
     
 if __name__ == "__main__":
+    logger.info(f"{__file__} start")
     start()
 
